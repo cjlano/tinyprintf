@@ -126,7 +126,11 @@ static void putchw(void *putp, putcf putf, int n, char z, char *bf)
 
 void tfp_format(void *putp, putcf putf, char *fmt, va_list va)
 {
+#ifdef PRINTF_LONG_SUPPORT
+    char bf[23];
+#else
     char bf[12];
+#endif
 
     char ch;
 
