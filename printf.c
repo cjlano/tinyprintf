@@ -160,26 +160,25 @@ void tfp_format(void *putp, putcf putf, char *fmt, va_list va)
             switch (ch) {
             case 0:
                 goto abort;
-            case 'u':{
+            case 'u':
 #ifdef PRINTF_LONG_SUPPORT
-                    if (lng)
-                        uli2a(va_arg(va, unsigned long int), 10, 0, bf);
-                    else
+                if (lng)
+                    uli2a(va_arg(va, unsigned long int), 10, 0, bf);
+                else
 #endif
-                        ui2a(va_arg(va, unsigned int), 10, 0, bf);
-                    putchw(putp, putf, w, lz, bf);
-                    break;
-                }
-            case 'd':{
+                    ui2a(va_arg(va, unsigned int), 10, 0, bf);
+                putchw(putp, putf, w, lz, bf);
+                break;
+            case 'd':
+            case 'i':
 #ifdef PRINTF_LONG_SUPPORT
-                    if (lng)
-                        li2a(va_arg(va, unsigned long int), bf);
-                    else
+                if (lng)
+                    li2a(va_arg(va, unsigned long int), bf);
+                else
 #endif
-                        i2a(va_arg(va, int), bf);
-                    putchw(putp, putf, w, lz, bf);
-                    break;
-                }
+                    i2a(va_arg(va, int), bf);
+                putchw(putp, putf, w, lz, bf);
+                break;
             case 'x':
             case 'X':
 #ifdef PRINTF_LONG_SUPPORT
