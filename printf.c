@@ -189,6 +189,10 @@ void tfp_format(void *putp, putcf putf, char *fmt, va_list va)
                     ui2a(va_arg(va, unsigned int), 16, (ch == 'X'), bf);
                 putchw(putp, putf, w, lz, bf);
                 break;
+            case 'o':
+                ui2a(va_arg(va, unsigned int), 8, 0, bf);
+                putchw(putp, putf, w, lz, alt, bf);
+                break;
             case 'c':
                 putf(putp, (char)(va_arg(va, int)));
                 break;
