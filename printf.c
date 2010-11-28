@@ -30,7 +30,7 @@ static void *stdout_putp;
 static void uli2a(unsigned long int num, unsigned int base, int uc, char *bf)
 {
     int n = 0;
-    unsigned int d = 1;
+    unsigned long int d = 1;
     while (num / d >= base)
         d *= base;
     while (d != 0) {
