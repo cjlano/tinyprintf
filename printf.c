@@ -265,6 +265,7 @@ void tfp_format(void *putp, putcf putf, char *fmt, va_list va)
             case 's':
                 p.bf = va_arg(va, char *);
                 putchw(putp, putf, &p);
+                p.bf = bf;
                 break;
             case '%':
                 putf(putp, ch);
