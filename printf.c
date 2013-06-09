@@ -21,6 +21,18 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 #include "printf.h"
 
+
+/*
+ * Configuration
+ */
+
+/* Enable long int support */
+#define PRINTF_LONG_SUPPORT
+
+
+/*
+ * Implementation
+ */
 typedef void (*putcf) (void *, char);
 static putcf stdout_putf;
 static void *stdout_putp;
@@ -172,9 +184,9 @@ void tfp_format(void *putp, putcf putf, char *fmt, va_list va)
 {
     struct param p;
 #ifdef PRINTF_LONG_SUPPORT
-    char bf[23];
+    char bf[23];  /* long = 64b on some architectures */
 #else
-    char bf[12];
+    char bf[12];  /* int = 32b on some architectures */
 #endif
     p.bf = bf;
 
