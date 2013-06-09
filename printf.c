@@ -290,6 +290,18 @@ void tfp_format(void *putp, putcf putf, char *fmt, va_list va)
             if (ch >= '0' && ch <= '9') {
                 ch = a2u(ch, &fmt, 10, &(p.width));
             }
+
+            /* We accept 'x.y' format but don't support it completely:
+             * we ignore the 'y' digit => this ignores 0-fill
+             * size and makes it == width (ie. 'x') */
+            if (ch == '.') {
+              p.lz = 1;  /* zero-padding */
+              /* ignore actual 0-fill size: */
+              do {
+                ch = *(fmt++);
+              } while ((ch >= '0') && (ch <= '9'));
+            }
+
 #ifdef PRINTF_LONG_SUPPORT
             if (ch == 'l') {
                 ch = *(fmt++);
