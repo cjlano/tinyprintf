@@ -106,10 +106,10 @@ static int a2d(char ch)
         return -1;
 }
 
-static char a2i(char ch, char **src, int base, int *nump)
+static char a2u(char ch, char **src, int base, unsigned int *nump)
 {
     char *p = *src;
-    int num = 0;
+    unsigned int num = 0;
     int digit;
     while ((digit = a2d(ch)) >= 0) {
         if (digit > base)
@@ -210,7 +210,7 @@ void tfp_format(void *putp, putcf putf, char *fmt, va_list va)
 
             /* Width */
             if (ch >= '0' && ch <= '9') {
-                ch = a2i(ch, &fmt, 10, &(p.width));
+                ch = a2u(ch, &fmt, 10, &(p.width));
             }
 #ifdef PRINTF_LONG_SUPPORT
             if (ch == 'l') {
