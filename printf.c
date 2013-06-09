@@ -66,6 +66,7 @@ struct param {
     char lz:1;          /**<  Leading zeros */
     char alt:1;         /**<  alternate form */
     char uc:1;          /**<  Upper case (for base16 only) */
+    char align_left:1;  /**<  0 == align right (default), 1 == align left */
     unsigned int width; /**<  field width */
     char sign;          /**<  The sign to display (if any) */
     unsigned int base;  /**<  number base (e.g.: 8, 10, 16) */
@@ -205,8 +206,8 @@ static void putchw(void *putp, putcf putf, struct param *p)
     else if (p->alt && p->base == 8)
         n--;
 
-    /* Fill with space, before alternate or sign */
-    if (!p->lz) {
+    /* Fill with space to align to the right, before alternate or sign */
+    if (!p->lz && !p->align_left) {
         while (n-- > 0)
             putf(putp, ' ');
     }
@@ -233,6 +234,12 @@ static void putchw(void *putp, putcf putf, struct param *p)
     bf = p->bf;
     while ((ch = *bf++))
         putf(putp, ch);
+
+    /* Fill with space to align to the left, after string */
+    if (!p->lz && p->align_left) {
+        while (n-- > 0)
+            putf(putp, ' ');
+    }
 }
 
 void tfp_format(void *putp, putcf putf, char *fmt, va_list va)
@@ -255,6 +262,7 @@ void tfp_format(void *putp, putcf putf, char *fmt, va_list va)
             p.lz = 0;
             p.alt = 0;
             p.width = 0;
+            p.align_left = 0;
             p.sign = 0;
 #ifdef PRINTF_LONG_SUPPORT
             char lng = 0;  /* 1 for long, 2 for long long */
@@ -263,6 +271,9 @@ void tfp_format(void *putp, putcf putf, char *fmt, va_list va)
             /* Flags */
             while ((ch = *(fmt++))) {
                 switch (ch) {
+                case '-':
+                    p.align_left = 1;
+                    continue;
                 case '0':
                     p.lz = 1;
                     continue;
