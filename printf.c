@@ -32,8 +32,26 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 /* Enable long long int support (implies long int support) */
 #define PRINTF_LONG_LONG_SUPPORT
 
+
+/*
+ * Configuration adjustments
+ */
 #ifdef PRINTF_LONG_LONG_SUPPORT
 # define PRINTF_LONG_SUPPORT
+#endif
+
+/* __SIZEOF_<type>__ defined at least by gcc */
+#ifdef __SIZEOF_POINTER__
+# define SIZEOF_POINTER __SIZEOF_POINTER__
+#endif
+#ifdef __SIZEOF_LONG_LONG__
+# define SIZEOF_LONG_LONG __SIZEOF_LONG_LONG__
+#endif
+#ifdef __SIZEOF_LONG__
+# define SIZEOF_LONG __SIZEOF_LONG__
+#endif
+#ifdef __SIZEOF_INT__
+# define SIZEOF_INT __SIZEOF_INT__
 #endif
 
 
@@ -307,6 +325,17 @@ void tfp_format(void *putp, putcf putf, char *fmt, va_list va)
                     i2a(va_arg(va, int), &p);
                 putchw(putp, putf, &p);
                 break;
+#ifdef SIZEOF_POINTER
+            case 'p':
+                p.alt = 1;
+# if defined(SIZEOF_INT) && SIZEOF_POINTER <= SIZEOF_INT
+                lng = 0;
+# elif defined(SIZEOF_LONG) && SIZEOF_POINTER <= SIZEOF_LONG
+                lng = 1;
+# elif defined(SIZEOF_LONG_LONG) && SIZEOF_POINTER <= SIZEOF_LONG_LONG
+                lng = 2;
+# endif
+#endif
             case 'x':
             case 'X':
                 p.base = 16;
