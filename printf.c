@@ -26,12 +26,12 @@ static putcf stdout_putf;
 static void *stdout_putp;
 
 struct param {
-    char lz;            /**< Leading zeros */
-    unsigned int width; /**< field width */
+    char lz:1;          /**<  Leading zeros */
+    char alt:1;         /**<  alternate form */
+    char uc:1;          /**<  Upper case (for base16 only) */
+    unsigned int width; /**<  field width */
     char sign;          /**<  The sign to display (if any) */
-    char alt;           /**< alternate form */
     unsigned int base;  /**<  number base (e.g.: 8, 10, 16) */
-    char uc;            /**<  Upper case (for base16 only) */
     char *bf;           /**<  Buffer to output */
 };
 
@@ -245,7 +245,7 @@ void tfp_format(void *putp, putcf putf, char *fmt, va_list va)
             case 'x':
             case 'X':
                 p.base = 16;
-                p.uc = (ch == 'X');
+                p.uc = (ch == 'X')?1:0;
 #ifdef PRINTF_LONG_SUPPORT
                 if (lng)
                     uli2a(va_arg(va, unsigned long int), &p);
