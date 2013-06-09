@@ -29,6 +29,13 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 /* Enable long int support */
 #define PRINTF_LONG_SUPPORT
 
+/* Enable long long int support (implies long int support) */
+#define PRINTF_LONG_LONG_SUPPORT
+
+#ifdef PRINTF_LONG_LONG_SUPPORT
+# define PRINTF_LONG_SUPPORT
+#endif
+
 
 /*
  * Implementation
@@ -47,8 +54,38 @@ struct param {
     char *bf;           /**<  Buffer to output */
 };
 
-#ifdef PRINTF_LONG_SUPPORT
 
+#ifdef PRINTF_LONG_LONG_SUPPORT
+static void ulli2a(unsigned long long int num, struct param *p)
+{
+    int n = 0;
+    unsigned long long int d = 1;
+    char *bf = p->bf;
+    while (num / d >= p->base)
+        d *= p->base;
+    while (d != 0) {
+        int dgt = num / d;
+        num %= d;
+        d /= p->base;
+        if (n || dgt > 0 || d == 0) {
+            *bf++ = dgt + (dgt < 10 ? '0' : (p->uc ? 'A' : 'a') - 10);
+            ++n;
+        }
+    }
+    *bf = 0;
+}
+
+static void lli2a(long long int num, struct param *p)
+{
+    if (num < 0) {
+        num = -num;
+        p->sign = '-';
+    }
+    ulli2a(num, p);
+}
+#endif
+
+#ifdef PRINTF_LONG_SUPPORT
 static void uli2a(unsigned long int num, struct param *p)
 {
     int n = 0;
@@ -202,7 +239,7 @@ void tfp_format(void *putp, putcf putf, char *fmt, va_list va)
             p.width = 0;
             p.sign = 0;
 #ifdef PRINTF_LONG_SUPPORT
-            char lng = 0;
+            char lng = 0;  /* 1 for long, 2 for long long */
 #endif
 
             /* Flags */
@@ -228,6 +265,12 @@ void tfp_format(void *putp, putcf putf, char *fmt, va_list va)
             if (ch == 'l') {
                 ch = *(fmt++);
                 lng = 1;
+#ifdef PRINTF_LONG_LONG_SUPPORT
+                if (ch == 'l') {
+                  ch = *(fmt++);
+                  lng = 2;
+                }
+#endif
             }
 #endif
             switch (ch) {
@@ -236,7 +279,12 @@ void tfp_format(void *putp, putcf putf, char *fmt, va_list va)
             case 'u':
                 p.base = 10;
 #ifdef PRINTF_LONG_SUPPORT
-                if (lng)
+#ifdef PRINTF_LONG_LONG_SUPPORT
+                if (2 == lng)
+                    ulli2a(va_arg(va, unsigned long long int), &p);
+                else
+#endif
+                  if (1 == lng)
                     uli2a(va_arg(va, unsigned long int), &p);
                 else
 #endif
@@ -247,8 +295,13 @@ void tfp_format(void *putp, putcf putf, char *fmt, va_list va)
             case 'i':
                 p.base = 10;
 #ifdef PRINTF_LONG_SUPPORT
-                if (lng)
-                    li2a(va_arg(va, unsigned long int), &p);
+#ifdef PRINTF_LONG_LONG_SUPPORT
+                if (2 == lng)
+                    lli2a(va_arg(va, long long int), &p);
+                else
+#endif
+                  if (1 == lng)
+                    li2a(va_arg(va, long int), &p);
                 else
 #endif
                     i2a(va_arg(va, int), &p);
@@ -259,7 +312,12 @@ void tfp_format(void *putp, putcf putf, char *fmt, va_list va)
                 p.base = 16;
                 p.uc = (ch == 'X')?1:0;
 #ifdef PRINTF_LONG_SUPPORT
-                if (lng)
+#ifdef PRINTF_LONG_LONG_SUPPORT
+                if (2 == lng)
+                    ulli2a(va_arg(va, unsigned long long int), &p);
+                else
+#endif
+                  if (1 == lng)
                     uli2a(va_arg(va, unsigned long int), &p);
                 else
 #endif
