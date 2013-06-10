@@ -1,9 +1,9 @@
 
-#include "printf.h"
-#undef printf
-#undef sprintf
 #include <stdio.h>
 #include <string.h>
+
+#include "tfp_printf.h"
+
 
 #define TPRINTF(expr...) \
   ({ printf("libc_printf(%s) -> ", #expr); printf(expr); \
@@ -16,7 +16,7 @@ static void stdout_putf(void *unused, char c)
 
 int main()
 {
-  init_printf(NULL, stdout_putf);
+  tfp_init_printf(NULL, stdout_putf);
 
   printf("Fun with %%!\n");
 
