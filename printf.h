@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 This library is really just two files: 'printf.h' and 'printf.c'.
 
-They provide a simple and small (+200 loc) printf functionality to
+They provide a simple and small (+400 loc) printf functionality to
 be used in embedded systems.
 
 I've found them so useful in debugging that I do not bother with a
@@ -30,7 +30,8 @@ into your project.
 
 Two printf variants are provided: printf and sprintf.
 
-The formats supported by this implementation are: 'd' 'u' 'c' 's' 'x' 'X'.
+The formats supported by this implementation are:
+'c' 'd' 'i' 'o' 'p' 'u' 's' 'x' 'X'.
 
 Zero padding and field width are also supported.
 
