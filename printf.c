@@ -32,10 +32,16 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 /* Enable long long int support (implies long int support) */
 #define PRINTF_LONG_LONG_SUPPORT
 
+/* Enable %z (size_t) support */
+#define PRINTF_SIZE_T_SUPPORT
 
 /*
  * Configuration adjustments
  */
+#ifdef PRINTF_SIZE_T_SUPPORT
+#include <sys/types.h>
+#endif
+
 #ifdef PRINTF_LONG_LONG_SUPPORT
 # define PRINTF_LONG_SUPPORT
 #endif
@@ -301,6 +307,20 @@ void tfp_format(void *putp, putcf putf, const char *fmt, va_list va)
                 ch = *(fmt++);
               } while ((ch >= '0') && (ch <= '9'));
             }
+
+#ifdef PRINTF_SIZE_T_SUPPORT
+# ifdef PRINTF_LONG_SUPPORT
+            if (ch == 'z') {
+                ch = *(fmt++);
+                if (sizeof(size_t) == sizeof(unsigned long int))
+                    lng = 1;
+#  ifdef PRINTF_LONG_LONG_SUPPORT
+                else if (sizeof(size_t) == sizeof(unsigned long long int))
+                    lng = 2;
+#  endif
+            } else
+# endif
+#endif
 
 #ifdef PRINTF_LONG_SUPPORT
             if (ch == 'l') {

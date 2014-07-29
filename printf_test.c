@@ -42,6 +42,14 @@ int main()
   TPRINTF("d1=%4.x\n", 0xd1);
 
   {
+    char blah[256];
+    TPRINTF("a=%zd\n", sizeof(blah));
+    TPRINTF("a=%zu\n", sizeof(blah));
+    TPRINTF("a=%zi\n", sizeof(blah));
+    TPRINTF("a=0x%zx\n", sizeof(blah));
+  }
+
+  {
     char s[11];
     int i = snprintf(s, sizeof(s), "Hello |%15s|.", "12345678901234");
     printf("snprintf: result=%d, str='%s' (len=%d)\n", i, s, (int)strlen(s));
