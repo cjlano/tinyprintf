@@ -1,5 +1,5 @@
 /*
-File: printf.c
+File: tfp_format.c
 
 Copyright (C) 2004  Kustaa Nyholm
 
@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 */
 
-#include "printf.h"
+#include "tfp_format.h"
 
 
 /*
@@ -64,10 +64,6 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 /*
  * Implementation
  */
-typedef void (*putcf) (void *, char);
-static putcf stdout_putf;
-static void *stdout_putp;
-
 struct param {
     char lz:1;          /**<  Leading zeros */
     char alt:1;         /**<  alternate form */
@@ -417,32 +413,4 @@ void tfp_format(void *putp, putcf putf, const char *fmt, va_list va)
         }
     }
  abort:;
-}
-
-void init_printf(void *putp, void (*putf) (void *, char))
-{
-    stdout_putf = putf;
-    stdout_putp = putp;
-}
-
-void tfp_printf(char *fmt, ...)
-{
-    va_list va;
-    va_start(va, fmt);
-    tfp_format(stdout_putp, stdout_putf, fmt, va);
-    va_end(va);
-}
-
-static void putcp(void *p, char c)
-{
-    *(*((char **)p))++ = c;
-}
-
-void tfp_sprintf(char *s, char *fmt, ...)
-{
-    va_list va;
-    va_start(va, fmt);
-    tfp_format(&s, putcp, fmt, va);
-    putcp(&s, 0);
-    va_end(va);
 }
