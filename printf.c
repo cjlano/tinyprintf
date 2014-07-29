@@ -174,9 +174,9 @@ static int a2d(char ch)
         return -1;
 }
 
-static char a2u(char ch, char **src, int base, unsigned int *nump)
+static char a2u(char ch, const char **src, int base, unsigned int *nump)
 {
-    char *p = *src;
+    const char *p = *src;
     unsigned int num = 0;
     int digit;
     while ((digit = a2d(ch)) >= 0) {
@@ -242,7 +242,7 @@ static void putchw(void *putp, putcf putf, struct param *p)
     }
 }
 
-void tfp_format(void *putp, putcf putf, char *fmt, va_list va)
+void tfp_format(void *putp, putcf putf, const char *fmt, va_list va)
 {
     struct param p;
 #ifdef PRINTF_LONG_SUPPORT
