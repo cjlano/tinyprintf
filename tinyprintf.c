@@ -434,17 +434,82 @@ void tfp_printf(char *fmt, ...)
 #endif
 
 #if TINYPRINTF_DEFINE_TFP_SPRINTF
-static void putcp(void *p, char c)
+struct _vsnprintf_putcf_data
 {
-    *(*((char **)p))++ = c;
+  size_t dest_capacity;
+  char *dest;
+  size_t num_chars;
+};
+
+static void _vsnprintf_putcf(void *p, char c)
+{
+  struct _vsnprintf_putcf_data *data = (struct _vsnprintf_putcf_data*)p;
+  if (data->num_chars < data->dest_capacity)
+    data->dest[data->num_chars] = c;
+  data->num_chars ++;
 }
 
-void tfp_sprintf(char *s, char *fmt, ...)
+int tfp_vsnprintf(char *str, size_t size, const char *format, va_list ap)
 {
-    va_list va;
-    va_start(va, fmt);
-    tfp_format(&s, putcp, fmt, va);
-    putcp(&s, 0);
-    va_end(va);
+  struct _vsnprintf_putcf_data data;
+
+  if (size < 1)
+    return 0;
+
+  data.dest = str;
+  data.dest_capacity = size-1;
+  data.num_chars = 0;
+  tfp_format(&data, _vsnprintf_putcf, format, ap);
+
+  if (data.num_chars < data.dest_capacity)
+    data.dest[data.num_chars] = '\0';
+  else
+    data.dest[data.dest_capacity] = '\0';
+
+  return data.num_chars;
+}
+
+int tfp_snprintf(char *str, size_t size, const char *format, ...)
+{
+  va_list ap;
+  int retval;
+
+  va_start(ap, format);
+  retval = tfp_vsnprintf(str, size, format, ap);
+  va_end(ap);
+  return retval;
+}
+
+struct _vsprintf_putcf_data
+{
+  char *dest;
+  size_t num_chars;
+};
+
+static void _vsprintf_putcf(void *p, char c)
+{
+  struct _vsprintf_putcf_data *data = (struct _vsprintf_putcf_data*)p;
+  data->dest[data->num_chars++] = c;
+}
+
+int tfp_vsprintf(char *str, const char *format, va_list ap)
+{
+  struct _vsprintf_putcf_data data;
+  data.dest = str;
+  data.num_chars = 0;
+  tfp_format(&data, _vsprintf_putcf, format, ap);
+  data.dest[data.num_chars] = '\0';
+  return data.num_chars;
+}
+
+int tfp_sprintf(char *str, const char *format, ...)
+{
+  va_list ap;
+  int retval;
+
+  va_start(ap, format);
+  retval = tfp_vsprintf(str, format, ap);
+  va_end(ap);
+  return retval;
 }
 #endif

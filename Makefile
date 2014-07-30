@@ -9,7 +9,7 @@ all: tests
 
 test tests: compiletests runtests
 
-runtests: test/printf
+runtests: test/printf test/sprintf
 	set -x ; for prg in $^ ; do $(RUNNER) $$prg || exit $$? ; done
 
 compiletests:
@@ -32,5 +32,8 @@ compiletests:
 test/printf: test/printf.o tinyprintf.o
 	$(LINK.c) -o $@ $^
 
+test/sprintf: test/sprintf.o tinyprintf.o
+	$(LINK.c) -o $@ $^
+
 clean:
-	$(RM) *.o test/*.o *~ test/*~ test/printf
+	$(RM) *.o test/*.o *~ test/*~ test/printf test/sprintf

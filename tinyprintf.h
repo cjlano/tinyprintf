@@ -28,7 +28,8 @@ debugger at all.
 They are distributed in source form, so to use them, just compile them
 into your project.
 
-Two printf variants are provided: printf and sprintf.
+Two printf variants are provided: printf and the 'sprintf' family of
+functions ('snprintf', 'sprintf', 'vsnprintf', 'vsprintf').
 
 The formats supported by this implementation are:
 'c' 'd' 'i' 'o' 'p' 'u' 's' 'x' 'X'.
@@ -109,15 +110,23 @@ regs Kusti, 23.10.2004
 # define TINYPRINTF_DEFINE_TFP_PRINTF 1
 #endif
 
-/* Set this to 0 if you do not want to provide tfp_sprintf */
+/* Set this to 0 if you do not want to provide
+   tfp_sprintf/snprintf/vsprintf/vsnprintf */
 #ifndef TINYPRINTF_DEFINE_TFP_SPRINTF
 # define TINYPRINTF_DEFINE_TFP_SPRINTF 1
 #endif
 
-/* Set this to 0 if you do not want tfp_printf and tfp_sprintf to be
-   also available as printf/sprintf */
+/* Set this to 0 if you do not want tfp_printf and
+   tfp_{vsn,sn,vs,s}printf to be also available as
+   printf/{vsn,sn,vs,s}printf */
 #ifndef TINYPRINTF_OVERRIDE_LIBC
 # define TINYPRINTF_OVERRIDE_LIBC 1
+#endif
+
+/* Optional external types dependencies */
+
+#if TINYPRINTF_DEFINE_TFP_SPRINTF
+# include <sys/types.h>  /* size_t */
 #endif
 
 /* Declarations */
@@ -145,8 +154,14 @@ void tfp_printf(char *fmt, ...);
 #endif
 
 #if TINYPRINTF_DEFINE_TFP_SPRINTF
-void tfp_sprintf(char *s, char *fmt, ...);
+int tfp_vsnprintf(char *str, size_t size, const char *fmt, va_list ap);
+int tfp_snprintf(char *str, size_t size, const char *fmt, ...);
+int tfp_vsprintf(char *str, const char *fmt, va_list ap);
+int tfp_sprintf(char *str, const char *fmt, ...);
 # if TINYPRINTF_OVERRIDE_LIBC
+#  define vsnprintf tfp_vsnprintf
+#  define snprintf tfp_snprintf
+#  define vsprintf tfp_vsprintf
 #  define sprintf tfp_sprintf
 # endif
 #endif
