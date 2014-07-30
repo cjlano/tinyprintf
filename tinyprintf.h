@@ -76,14 +76,21 @@ to call it from interrupts too, although this may result in mixed output.
 If you rely on re-entrancy, take care that your 'putc' function is re-entrant!
 
 The printf and sprintf functions are actually macros that translate to
-'tfp_printf' and 'tfp_sprintf'. This makes it possible
-to use them along with 'stdio.h' printf's in a single source file.
-You just need to undef the names before you include the 'stdio.h'.
-Note that these are not function-like macros, so if you have variables
-or struct members with these names, things will explode in your face.
-Without variadic macros this is the best we can do to wrap these
-function. If it is a problem, just give up the macros and use the
-functions directly, or rename them.
+'tfp_printf' and 'tfp_sprintf' when 'TINYPRINTF_OVERRIDE_LIBC' is set
+(default). Setting it to 0 makes it possible to use them along with
+'stdio.h' printf's in a single source file. When
+'TINYPRINTF_OVERRIDE_LIBC' is set, please note that printf/sprintf are
+not function-like macros, so if you have variables or struct members
+with these names, things will explode in your face.  Without variadic
+macros this is the best we can do to wrap these function. If it is a
+problem, just give up the macros and use the functions directly, or
+rename them.
+
+It is also possible to avoid defining tfp_printf and/or tfp_sprintf by
+clearing 'TINYPRINTF_DEFINE_TFP_PRINTF' and/or
+'TINYPRINTF_DEFINE_TFP_SPRINTF' to 0. This allows for example to
+export only tfp_format, which is at the core of all the other
+functions.
 
 For further details see source code.
 
@@ -95,12 +102,27 @@ regs Kusti, 23.10.2004
 
 #include <stdarg.h>
 
+/* Global configuration */
+
+/* Set this to 0 if you do not want to provide tfp_printf */
+#ifndef TINYPRINTF_DEFINE_TFP_PRINTF
+# define TINYPRINTF_DEFINE_TFP_PRINTF 1
+#endif
+
+/* Set this to 0 if you do not want to provide tfp_sprintf */
+#ifndef TINYPRINTF_DEFINE_TFP_SPRINTF
+# define TINYPRINTF_DEFINE_TFP_SPRINTF 1
+#endif
+
+/* Set this to 0 if you do not want tfp_printf and tfp_sprintf to be
+   also available as printf/sprintf */
+#ifndef TINYPRINTF_OVERRIDE_LIBC
+# define TINYPRINTF_OVERRIDE_LIBC 1
+#endif
+
+/* Declarations */
+
 typedef void (*putcf) (void *, char);
-
-void init_printf(void *putp, putcf putf);
-
-void tfp_printf(char *fmt, ...);
-void tfp_sprintf(char *s, char *fmt, ...);
 
 /*
    'tfp_format' really is the central function for all tinyprintf. For
@@ -114,7 +136,19 @@ void tfp_sprintf(char *s, char *fmt, ...);
 */
 void tfp_format(void *putp, putcf putf, const char *fmt, va_list va);
 
-#define printf tfp_printf
-#define sprintf tfp_sprintf
+#if TINYPRINTF_DEFINE_TFP_PRINTF
+void init_printf(void *putp, putcf putf);
+void tfp_printf(char *fmt, ...);
+# if TINYPRINTF_OVERRIDE_LIBC
+#  define printf tfp_printf
+# endif
+#endif
+
+#if TINYPRINTF_DEFINE_TFP_SPRINTF
+void tfp_sprintf(char *s, char *fmt, ...);
+# if TINYPRINTF_OVERRIDE_LIBC
+#  define sprintf tfp_sprintf
+# endif
+#endif
 
 #endif

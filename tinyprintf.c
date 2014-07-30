@@ -64,9 +64,6 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 /*
  * Implementation
  */
-static putcf stdout_putf;
-static void *stdout_putp;
-
 struct param {
     char lz:1;          /**<  Leading zeros */
     char alt:1;         /**<  alternate form */
@@ -417,6 +414,10 @@ void tfp_format(void *putp, putcf putf, const char *fmt, va_list va)
  abort:;
 }
 
+#if TINYPRINTF_DEFINE_TFP_PRINTF
+static putcf stdout_putf;
+static void *stdout_putp;
+
 void init_printf(void *putp, putcf putf)
 {
     stdout_putf = putf;
@@ -430,7 +431,9 @@ void tfp_printf(char *fmt, ...)
     tfp_format(stdout_putp, stdout_putf, fmt, va);
     va_end(va);
 }
+#endif
 
+#if TINYPRINTF_DEFINE_TFP_SPRINTF
 static void putcp(void *p, char c)
 {
     *(*((char **)p))++ = c;
@@ -444,3 +447,4 @@ void tfp_sprintf(char *s, char *fmt, ...)
     putcp(&s, 0);
     va_end(va);
 }
+#endif

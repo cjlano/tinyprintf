@@ -1,9 +1,12 @@
 
-#include "tinyprintf.h"
-#undef printf
-#undef sprintf
+#define TINYPRINTF_DEFINE_TFP_PRINTF 1
+#define TINYPRINTF_DEFINE_TFP_SPRINTF 0
+#define TINYPRINTF_OVERRIDE_LIBC 0
+
 #include <stdio.h>
 #include <string.h>
+
+#include "tinyprintf.h"
 
 #define TPRINTF(expr...) \
   ({ printf("libc_printf(%s) -> ", #expr); printf(expr); \
@@ -18,7 +21,7 @@ int main()
 {
   init_printf(NULL, stdout_putf);
 
-  printf("Fun with %%!\n");
+  printf("Fun with printf and %%!\n");
 
   TPRINTF("d1=%016llx d2=%016lx d3=%02x d4=%02X 42=%03d\n",
           (long long unsigned)0xd1, (long unsigned)0xd2, 0xd3, 0xd4, 42);
