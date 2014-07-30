@@ -1,5 +1,5 @@
 /*
-File: printf.c
+File: tinyprintf.c
 
 Copyright (C) 2004  Kustaa Nyholm
 
@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 */
 
-#include "printf.h"
+#include "tinyprintf.h"
 
 
 /*

@@ -1,5 +1,5 @@
 
-#include "printf.h"
+#include "tinyprintf.h"
 #undef printf
 #undef sprintf
 #include <stdio.h>

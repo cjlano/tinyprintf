@@ -10,7 +10,7 @@ all: tests
 test tests: test/printf
 	$(RUNNER) $<
 
-test/printf: test/printf.o printf.o
+test/printf: test/printf.o tinyprintf.o
 	$(LINK.c) -o $@ $^
 
 clean:
