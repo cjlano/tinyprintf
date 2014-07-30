@@ -35,9 +35,12 @@ The formats supported by this implementation are:
 
 Zero padding and field width are also supported.
 
-If the library is compiled with 'PRINTF_SUPPORT_LONG' defined, then the
-long specifier is also supported. Note that this will pull in some long math
-routines (pun intended!) and thus make your executable noticeably longer.
+If the library is compiled with 'PRINTF_SUPPORT_LONG' defined, then
+the long specifier is also supported. Note that this will pull in some
+long math routines (pun intended!) and thus make your executable
+noticeably longer. Likewise with 'PRINTF_LONG_LONG_SUPPORT' for the
+long long specifier, and with 'PRINTF_SIZE_T_SUPPORT' for the size_t
+specifier.
 
 The memory footprint of course depends on the target CPU, compiler and
 compiler options, but a rough guesstimate (based on a H8S target) is about
