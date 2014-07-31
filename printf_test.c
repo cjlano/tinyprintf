@@ -50,14 +50,6 @@ int main()
   }
 
   {
-    char s[11];
-    int i = snprintf(s, sizeof(s), "Hello |%15s|.", "12345678901234");
-    printf("snprintf: result=%d, str='%s' (len=%d)\n", i, s, (int)strlen(s));
-    i = snprintf(s, sizeof(s), "Hello |%-15s|.", "12345678901234");
-    printf("snprintf: result=%d, str='%s' (len=%d)\n", i, s, (int)strlen(s));
-  }
-
-  {
     int in_stack;
     TPRINTF("Adddress of main: %p\n", main);
     TPRINTF("Adddress of stack variable: %p\n", &in_stack);
