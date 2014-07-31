@@ -131,6 +131,10 @@ regs Kusti, 23.10.2004
 
 /* Declarations */
 
+#ifdef  __cplusplus
+extern "C" {
+#endif
+
 typedef void (*putcf) (void *, char);
 
 /*
@@ -164,6 +168,10 @@ int tfp_sprintf(char *str, const char *fmt, ...);
 #  define vsprintf tfp_vsprintf
 #  define sprintf tfp_sprintf
 # endif
+#endif
+
+#ifdef  __cplusplus
+}
 #endif
 
 #endif
