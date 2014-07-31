@@ -102,6 +102,16 @@ void init_printf(void *putp, putcf putf);
 void tfp_printf(char *fmt, ...);
 void tfp_sprintf(char *s, char *fmt, ...);
 
+/*
+   'tfp_format' really is the central function for all tinyprintf. For
+   each output character after formatting, the 'putf' callback is
+   called with 2 args:
+     - an arbitrary void* 'putp' param defined by the user and
+       passed unmodified from 'tfp_format',
+     - the character.
+   The 'tfp_printf' and 'tfp_sprintf' functions simply define their own
+   callback and pass to it the right 'putp' it is expecting.
+*/
 void tfp_format(void *putp, putcf putf, const char *fmt, va_list va);
 
 #define printf tfp_printf
