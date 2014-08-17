@@ -60,6 +60,11 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 # define SIZEOF_INT __SIZEOF_INT__
 #endif
 
+#ifdef __GNUC__
+# define _TFP_GCC_NO_INLINE_  __attribute__ ((noinline))
+#else
+# define _TFP_GCC_NO_INLINE_
+#endif
 
 /*
  * Implementation
@@ -77,7 +82,8 @@ struct param {
 
 
 #ifdef PRINTF_LONG_LONG_SUPPORT
-static void ulli2a(unsigned long long int num, struct param *p)
+static void _TFP_GCC_NO_INLINE_ ulli2a(
+    unsigned long long int num, struct param *p)
 {
     int n = 0;
     unsigned long long int d = 1;
