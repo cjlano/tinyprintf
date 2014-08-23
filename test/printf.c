@@ -5,6 +5,7 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <limits.h>
 
 #include "tinyprintf.h"
 
@@ -35,10 +36,12 @@ int main()
   TPRINTF("84=%d 21=%ds |%s| |%sOK| d1=%x d2=%#x\n",
           84, 21, "hello", "fine", 0xd1, 0xd2);
 
-  TPRINTF("%lld\n", -(1ULL << 63));
-  TPRINTF("%llu\n", (1ULL << 64) - 1);
-  TPRINTF("%llx\n", -(1ULL << 63));
-  TPRINTF("%llx\n", (1ULL << 64) - 1);
+  TPRINTF("%lld\n", LLONG_MIN);
+  TPRINTF("%lld\n", LLONG_MAX);
+  TPRINTF("%llu\n", ULLONG_MAX);
+  TPRINTF("%llx\n", LLONG_MIN);
+  TPRINTF("%llx\n", LLONG_MAX);
+  TPRINTF("%llx\n", ULLONG_MAX);
 
   TPRINTF("d1=%.1x\n", 0xd1);
   TPRINTF("d1=%4.1x\n", 0xd1);

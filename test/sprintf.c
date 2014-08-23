@@ -7,6 +7,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <assert.h>
+#include <limits.h>
 
 #include "tinyprintf.h"
 
@@ -50,10 +51,12 @@ int main()
   TPRINTF("84=%d 21=%ds |%s| |%sOK| d1=%x d2=%#x",
           84, 21, "hello", "fine", 0xd1, 0xd2);
 
-  TPRINTF("%lld", -(1ULL << 63));
-  TPRINTF("%llu", (1ULL << 64) - 1);
-  TPRINTF("%llx", -(1ULL << 63));
-  TPRINTF("%llx", (1ULL << 64) - 1);
+  TPRINTF("%lld", LLONG_MIN);
+  TPRINTF("%lld", LLONG_MAX);
+  TPRINTF("%llu", ULLONG_MAX);
+  TPRINTF("%llx", LLONG_MIN);
+  TPRINTF("%llx", LLONG_MAX);
+  TPRINTF("%llx", ULLONG_MAX);
 
   TPRINTF("d1=%4.4x", 0xd1);
 
