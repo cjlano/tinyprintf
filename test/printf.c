@@ -9,12 +9,16 @@
 
 #include "tinyprintf.h"
 
+/* Clear unused warnings for actually unused variables */
+#define UNUSED(x) (void)(x)
+
 #define TPRINTF(expr...) \
   ({ printf("libc_printf(%s) -> ", #expr); printf(expr); \
      printf(" tfp_printf(%s) -> ", #expr); tfp_printf(expr); })
 
 static void stdout_putf(void *unused, char c)
 {
+  UNUSED(unused);
   putchar(c);
 }
 
