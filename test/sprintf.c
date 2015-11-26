@@ -58,6 +58,9 @@ int main()
   TPRINTF("%llx", LLONG_MAX);
   TPRINTF("%llx", ULLONG_MAX);
 
+  TPRINTF("d1=%.1x", 0xd1);
+  TPRINTF("d1=%4.1x", 0xd1);
+  TPRINTF("d1=%4.x", 0xd1);
   TPRINTF("d1=%4.4x", 0xd1);
 
   {

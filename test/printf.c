@@ -50,6 +50,7 @@ int main()
   TPRINTF("d1=%.1x", 0xd1);
   TPRINTF("d1=%4.1x", 0xd1);
   TPRINTF("d1=%4.x", 0xd1);
+  TPRINTF("d1=%4.4x", 0xd1);
 
   {
     char blah[256];
@@ -58,6 +59,8 @@ int main()
     TPRINTF("a=%zi", sizeof(blah));
     TPRINTF("a=0x%zx", sizeof(blah));
   }
+
+  TPRINTF("Hello |%15s|.", "12345678901234");
 
   {
     int in_stack;
