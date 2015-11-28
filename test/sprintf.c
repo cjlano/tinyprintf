@@ -95,12 +95,16 @@ int main()
   TPRINTF("0=|%.d|", 0);
   TPRINTF("0=|%.4d|", 0);
   TPRINTF("0=|%4.d|", 0);
+  TPRINTF("0=|%4.*d|", -1, 0);
 
   TPRINTF("42=|%*d|", 5, 42);
   TPRINTF("42=|%-*d|", 5, 42);
   TPRINTF("42=|%0*d|", 5, 42);
   TPRINTF("42=|%.*d|", 5, 42);
-  TPRINTF("42=|%-*.*d|", 10, 5, 42);
+  TPRINTF("42=|%*.*d|", 10, 5, 42);
+  TPRINTF("42=|%*.*d|", -10, 5, 42);
+  TPRINTF("42=|%*.*d|", 10, -5, 42);
+  TPRINTF("42=|%-*.*d|", -10, 5, 42);
 
   {
     char blah[256];

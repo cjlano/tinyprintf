@@ -79,9 +79,8 @@ struct param {
     char alt:1;         /**<  alternate form */
     char uc:1;          /**<  Upper case (for base16 only) */
     char align_left:1;  /**<  0 == align right (default), 1 == align left */
-    char prec_used:1;   /**<  precision specified */
-    unsigned int width; /**<  field width */
-    unsigned int prec;  /**<  precision */
+    int width;          /**<  field width */
+    int prec;           /**<  precision */
     char sign;          /**<  The sign to display (if any) */
     unsigned int base;  /**<  number base (e.g.: 8, 10, 16) */
     char *bf;           /**<  Buffer to output */
@@ -95,7 +94,7 @@ static void _TFP_GCC_NO_INLINE_ ulli2a(
 {
     unsigned long long int d = 1;
     char *bf = p->bf;
-    if (p->prec_used && (p->prec == 0) && (num == 0))
+    if ((p->prec == 0) && (num == 0))
             return;
     while (num / d >= p->base) {
         d *= p->base;
@@ -124,7 +123,7 @@ static void uli2a(unsigned long int num, struct param *p)
 {
     unsigned long int d = 1;
     char *bf = p->bf;
-    if (p->prec_used && (p->prec == 0) && (num == 0))
+    if ((p->prec == 0) && (num == 0))
             return;
     while (num / d >= p->base) {
         d *= p->base;
@@ -152,7 +151,7 @@ static void ui2a(unsigned int num, struct param *p)
 {
     unsigned int d = 1;
     char *bf = p->bf;
-    if (p->prec_used && (p->prec == 0) && (num == 0))
+    if ((p->prec == 0) && (num == 0))
             return;
     while (num / d >= p->base) {
         d *= p->base;
@@ -278,9 +277,8 @@ void tfp_format(void *putp, putcf putf, const char *fmt, va_list va)
             p.alt = 0;
             p.uc = 0;
             p.align_left = 0;
-            p.prec_used = 0;
             p.width = 0;
-            p.prec = 0;
+            p.prec = -1;
             p.sign = 0;
             p.bf = bf;
             p.bf_len = 0;
@@ -303,25 +301,46 @@ void tfp_format(void *putp, putcf putf, const char *fmt, va_list va)
                 break;
             }
 
+            if (p.align_left)
+                p.lz = 0;
+
             /* Width */
             if (ch == '*') {
                 ch = *(fmt++);
-                p.width = va_arg(va, unsigned int);
+                p.width = va_arg(va, int);
+                if (p.width < 0) {
+                    p.align_left = 1;
+                    p.width = -p.width;
+                }
             } else if (IS_DIGIT(ch)) {
-                ch = a2u(ch, &fmt, 10, &(p.width));
+                unsigned int width;
+                ch = a2u(ch, &fmt, 10, &(width));
+                p.width = width;
             }
 
             /* Precision */
             if (ch == '.') {
                 ch = *(fmt++);
-                p.prec_used = 1;
                 if (ch == '*') {
+                    int prec;
                     ch = *(fmt++);
-                    p.prec = va_arg(va, unsigned int);
+                    prec = va_arg(va, int);
+                    if (prec < 0)
+                        /* act as if precision was omitted */
+                        p.prec = -1;
+                    else
+                        p.prec = prec;
                 } else if (IS_DIGIT(ch)) {
-                    ch = a2u(ch, &fmt, 10, &(p.prec));
+                    unsigned int prec;
+                    ch = a2u(ch, &fmt, 10, &(prec));
+                    p.prec = prec;
+                } else {
+                    p.prec = 0;
                 }
             }
+            if (p.prec >= 0)
+                /* precision causes zero pad to be ignored */
+                p.lz = 0;
 
 #ifdef PRINTF_SIZE_T_SUPPORT
 # ifdef PRINTF_LONG_SUPPORT
@@ -354,6 +373,8 @@ void tfp_format(void *putp, putcf putf, const char *fmt, va_list va)
                 goto abort;
             case 'u':
                 p.base = 10;
+                if (p.prec < 0)
+                    p.prec = 1;
 #ifdef PRINTF_LONG_SUPPORT
 #ifdef PRINTF_LONG_LONG_SUPPORT
                 if (2 == lng)
@@ -370,6 +391,8 @@ void tfp_format(void *putp, putcf putf, const char *fmt, va_list va)
             case 'd':
             case 'i':
                 p.base = 10;
+                if (p.prec < 0)
+                    p.prec = 1;
 #ifdef PRINTF_LONG_SUPPORT
 #ifdef PRINTF_LONG_LONG_SUPPORT
                 if (2 == lng)
@@ -398,6 +421,8 @@ void tfp_format(void *putp, putcf putf, const char *fmt, va_list va)
             case 'X':
                 p.base = 16;
                 p.uc = (ch == 'X')?1:0;
+                if (p.prec < 0)
+                    p.prec = 1;
 #ifdef PRINTF_LONG_SUPPORT
 #ifdef PRINTF_LONG_LONG_SUPPORT
                 if (2 == lng)
@@ -413,6 +438,8 @@ void tfp_format(void *putp, putcf putf, const char *fmt, va_list va)
                 break;
             case 'o':
                 p.base = 8;
+                if (p.prec < 0)
+                    p.prec = 1;
                 ui2a(va_arg(va, unsigned int), &p);
                 putchw(putp, putf, &p);
                 break;
@@ -425,14 +452,10 @@ void tfp_format(void *putp, putcf putf, const char *fmt, va_list va)
                 char *b;
                 p.bf = va_arg(va, char *);
                 b = p.bf;
-                while (*b++) {
-                    if (p.prec_used && (prec == 0)) {
-                        break;
-                    }
+                while ((prec-- != 0) && *b++) {
                     p.bf_len++;
-                    prec--;
                 }
-                p.prec = 0;
+                p.prec = -1;
                 putchw(putp, putf, &p);
             }
                 break;
