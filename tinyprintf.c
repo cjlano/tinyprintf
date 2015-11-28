@@ -322,7 +322,10 @@ void tfp_format(void *putp, putcf putf, const char *fmt, va_list va)
             }
 
             /* Width */
-            if (IS_DIGIT(ch)) {
+            if (ch == '*') {
+                ch = *(fmt++);
+                p.width = va_arg(va, unsigned int);
+            } else if (IS_DIGIT(ch)) {
                 ch = a2u(ch, &fmt, 10, &(p.width));
             }
 
@@ -330,7 +333,10 @@ void tfp_format(void *putp, putcf putf, const char *fmt, va_list va)
             if (ch == '.') {
                 ch = *(fmt++);
                 p.prec_used = 1;
-                if (IS_DIGIT(ch)) {
+                if (ch == '*') {
+                    ch = *(fmt++);
+                    p.prec = va_arg(va, unsigned int);
+                } else if (IS_DIGIT(ch)) {
                     ch = a2u(ch, &fmt, 10, &(p.prec));
                 }
             }
