@@ -88,8 +88,9 @@ int main()
   TPRINTF("d1=%4.1x", 0xd1);
   TPRINTF("d1=%4.2x", 0xd1);
   TPRINTF("d1=%4.4x", 0xd1);
-  TPRINTF("d1=%4.20x", 0xd1);
-  TPRINTF("d1=%8.4x", 0xd1);
+  TPRINTF("d1=%4.50x", 0xd1);
+  TPRINTF("d1=|%8.4x|", 0xd1);
+  TPRINTF("d1=|%-8.4x|", 0xd1);
 
   TPRINTF("0=|%.d|", 0);
   TPRINTF("0=|%.4d|", 0);

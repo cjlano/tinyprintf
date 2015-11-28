@@ -34,10 +34,7 @@ functions ('snprintf', 'sprintf', 'vsnprintf', 'vsprintf').
 The formats supported by this implementation are:
 'c' 'd' 'i' 'o' 'p' 'u' 's' 'x' 'X'.
 
-Zero padding, field width, and precision are also supported. When precision
-is used for 'd', 'i', 'o', 'u', 'x', and 'X', the precision is limited to the
-max number of digits used by the largest supported size (either 10 or 20
-characters).
+Zero padding, field width, and precision are also supported.
 
 If the library is compiled with 'PRINTF_SUPPORT_LONG' defined, then
 the long specifier is also supported. Note that this will pull in some

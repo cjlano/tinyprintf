@@ -95,19 +95,11 @@ static void _TFP_GCC_NO_INLINE_ ulli2a(
 {
     unsigned long long int d = 1;
     char *bf = p->bf;
-    int prec = p->prec;
-    if (p->prec_used && (prec == 0) && (num == 0))
+    if (p->prec_used && (p->prec == 0) && (num == 0))
             return;
-    if (prec > BF_MAX)
-        prec = BF_MAX;
-    /* at least one digit */
-    prec--;
     while (num / d >= p->base) {
         d *= p->base;
-        prec--;
     }
-    while (prec-- > 0)
-        *bf++ = '0';
     while (d != 0) {
         int dgt = num / d;
         num %= d;
@@ -132,19 +124,11 @@ static void uli2a(unsigned long int num, struct param *p)
 {
     unsigned long int d = 1;
     char *bf = p->bf;
-    int prec = p->prec;
-    if (p->prec_used && (prec == 0) && (num == 0))
+    if (p->prec_used && (p->prec == 0) && (num == 0))
             return;
-    if (prec > BF_MAX)
-        prec = BF_MAX;
-    /* at least one digit */
-    prec--;
     while (num / d >= p->base) {
         d *= p->base;
-        prec--;
     }
-    while (prec-- > 0)
-        *bf++ = '0';
     while (d != 0) {
         int dgt = num / d;
         num %= d;
@@ -168,19 +152,11 @@ static void ui2a(unsigned int num, struct param *p)
 {
     unsigned int d = 1;
     char *bf = p->bf;
-    int prec = p->prec;
-    if (p->prec_used && (prec == 0) && (num == 0))
+    if (p->prec_used && (p->prec == 0) && (num == 0))
             return;
-    if (prec > BF_MAX)
-        prec = BF_MAX;
-    /* at least one digit */
-    prec--;
     while (num / d >= p->base) {
         d *= p->base;
-        prec--;
     }
-    while (prec-- > 0)
-        *bf++ = '0';
     while (d != 0) {
         int dgt = num / d;
         num %= d;
@@ -230,22 +206,26 @@ static char a2u(char ch, const char **src, int base, unsigned int *nump)
 static void putchw(void *putp, putcf putf, struct param *p)
 {
     char ch;
-    int n = p->width;
+    int width = p->width;
+    int prec = p->prec;
     char *bf = p->bf;
     size_t bf_len = p->bf_len;
 
     /* Number of filling characters */
-    n -= p->bf_len;
+    width -= bf_len;
+    prec -= bf_len;
     if (p->sign)
-        n--;
+        width--;
     if (p->alt && p->base == 16)
-        n -= 2;
+        width -= 2;
     else if (p->alt && p->base == 8)
-        n--;
+        width--;
+    if (prec > 0)
+        width -= prec;
 
     /* Fill with space to align to the right, before alternate or sign */
     if (!p->lz && !p->align_left) {
-        while (n-- > 0)
+        while (width-- > 0)
             putf(putp, ' ');
     }
 
@@ -262,8 +242,10 @@ static void putchw(void *putp, putcf putf, struct param *p)
     }
 
     /* Fill with zeros, after alternate or sign */
+    while (prec-- > 0)
+        putf(putp, '0');
     if (p->lz) {
-        while (n-- > 0)
+        while (width-- > 0)
             putf(putp, '0');
     }
 
@@ -273,7 +255,7 @@ static void putchw(void *putp, putcf putf, struct param *p)
 
     /* Fill with space to align to the left, after string */
     if (!p->lz && p->align_left) {
-        while (n-- > 0)
+        while (width-- > 0)
             putf(putp, ' ');
     }
 }
@@ -450,6 +432,7 @@ void tfp_format(void *putp, putcf putf, const char *fmt, va_list va)
                     p.bf_len++;
                     prec--;
                 }
+                p.prec = 0;
                 putchw(putp, putf, &p);
             }
                 break;
