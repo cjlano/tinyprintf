@@ -51,6 +51,27 @@ int main()
   TPRINTF("84=%d 21=%ds |%s| |%sOK| d1=%x d2=%#x",
           84, 21, "hello", "fine", 0xd1, 0xd2);
 
+  TPRINTF("|%.6s|", "stringXXX");
+  TPRINTF("|%10.6s|", "stringXXX");
+  TPRINTF("|%-10.6s|", "stringXXX");
+  TPRINTF("|%.20s|", "stringXXX");
+  TPRINTF("|%.s|", "stringXXX");
+  TPRINTF("|%.50s|", "0123456789012345678901234567890123456789");
+
+  TPRINTF("%d", INT_MIN);
+  TPRINTF("%d", INT_MAX);
+  TPRINTF("%u", UINT_MAX);
+  TPRINTF("%x", INT_MIN);
+  TPRINTF("%x", INT_MAX);
+  TPRINTF("%x", UINT_MAX);
+
+  TPRINTF("%ld", LONG_MIN);
+  TPRINTF("%ld", LONG_MAX);
+  TPRINTF("%lu", ULONG_MAX);
+  TPRINTF("%lx", LONG_MIN);
+  TPRINTF("%lx", LONG_MAX);
+  TPRINTF("%lx", ULONG_MAX);
+
   TPRINTF("%lld", LLONG_MIN);
   TPRINTF("%lld", LLONG_MAX);
   TPRINTF("%llu", ULLONG_MAX);
@@ -58,7 +79,32 @@ int main()
   TPRINTF("%llx", LLONG_MAX);
   TPRINTF("%llx", ULLONG_MAX);
 
+  TPRINTF("d1=%.x", 0xd1);
+  TPRINTF("d1=%.1x", 0xd1);
+  TPRINTF("d1=%.2x", 0xd1);
+  TPRINTF("d1=%.4x", 0xd1);
+
+  TPRINTF("d1=%4.x", 0xd1);
+  TPRINTF("d1=%4.1x", 0xd1);
+  TPRINTF("d1=%4.2x", 0xd1);
   TPRINTF("d1=%4.4x", 0xd1);
+  TPRINTF("d1=%4.50x", 0xd1);
+  TPRINTF("d1=|%8.4x|", 0xd1);
+  TPRINTF("d1=|%-8.4x|", 0xd1);
+
+  TPRINTF("0=|%.d|", 0);
+  TPRINTF("0=|%.4d|", 0);
+  TPRINTF("0=|%4.d|", 0);
+  TPRINTF("0=|%4.*d|", -1, 0);
+
+  TPRINTF("42=|%*d|", 5, 42);
+  TPRINTF("42=|%-*d|", 5, 42);
+  TPRINTF("42=|%0*d|", 5, 42);
+  TPRINTF("42=|%.*d|", 5, 42);
+  TPRINTF("42=|%*.*d|", 10, 5, 42);
+  TPRINTF("42=|%*.*d|", -10, 5, 42);
+  TPRINTF("42=|%*.*d|", 10, -5, 42);
+  TPRINTF("42=|%-*.*d|", -10, 5, 42);
 
   {
     char blah[256];

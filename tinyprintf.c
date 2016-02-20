@@ -19,8 +19,9 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 */
 
-#include "tinyprintf.h"
+#include <stddef.h>
 
+#include "tinyprintf.h"
 
 /*
  * Configuration
@@ -38,10 +39,6 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 /*
  * Configuration adjustments
  */
-#ifdef PRINTF_SIZE_T_SUPPORT
-#include <sys/types.h>
-#endif
-
 #ifdef PRINTF_LONG_LONG_SUPPORT
 # define PRINTF_LONG_SUPPORT
 #endif
@@ -66,6 +63,14 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 # define _TFP_GCC_NO_INLINE_
 #endif
 
+#define IS_DIGIT(x) ((x) >= '0' && (x) <= '9')
+
+#ifdef PRINTF_LONG_SUPPORT
+#define BF_MAX 20 /* long = 64b on some architectures */
+#else
+#define BF_MAX 10 /* int = 32b on some architectures */
+#endif
+
 /*
  * Implementation
  */
@@ -74,10 +79,12 @@ struct param {
     char alt:1;         /**<  alternate form */
     char uc:1;          /**<  Upper case (for base16 only) */
     char align_left:1;  /**<  0 == align right (default), 1 == align left */
-    unsigned int width; /**<  field width */
+    int width;          /**<  field width */
+    int prec;           /**<  precision */
     char sign;          /**<  The sign to display (if any) */
     unsigned int base;  /**<  number base (e.g.: 8, 10, 16) */
     char *bf;           /**<  Buffer to output */
+    size_t bf_len;      /**<  Buffer length */
 };
 
 
@@ -85,21 +92,20 @@ struct param {
 static void _TFP_GCC_NO_INLINE_ ulli2a(
     unsigned long long int num, struct param *p)
 {
-    int n = 0;
     unsigned long long int d = 1;
     char *bf = p->bf;
-    while (num / d >= p->base)
+    if ((p->prec == 0) && (num == 0))
+            return;
+    while (num / d >= p->base) {
         d *= p->base;
+    }
     while (d != 0) {
         int dgt = num / d;
         num %= d;
         d /= p->base;
-        if (n || dgt > 0 || d == 0) {
-            *bf++ = dgt + (dgt < 10 ? '0' : (p->uc ? 'A' : 'a') - 10);
-            ++n;
-        }
+        *bf++ = dgt + (dgt < 10 ? '0' : (p->uc ? 'A' : 'a') - 10);
     }
-    *bf = 0;
+    p->bf_len = bf - p->bf;
 }
 
 static void lli2a(long long int num, struct param *p)
@@ -115,21 +121,20 @@ static void lli2a(long long int num, struct param *p)
 #ifdef PRINTF_LONG_SUPPORT
 static void uli2a(unsigned long int num, struct param *p)
 {
-    int n = 0;
     unsigned long int d = 1;
     char *bf = p->bf;
-    while (num / d >= p->base)
+    if ((p->prec == 0) && (num == 0))
+            return;
+    while (num / d >= p->base) {
         d *= p->base;
+    }
     while (d != 0) {
         int dgt = num / d;
         num %= d;
         d /= p->base;
-        if (n || dgt > 0 || d == 0) {
-            *bf++ = dgt + (dgt < 10 ? '0' : (p->uc ? 'A' : 'a') - 10);
-            ++n;
-        }
+        *bf++ = dgt + (dgt < 10 ? '0' : (p->uc ? 'A' : 'a') - 10);
     }
-    *bf = 0;
+    p->bf_len = bf - p->bf;
 }
 
 static void li2a(long num, struct param *p)
@@ -144,21 +149,20 @@ static void li2a(long num, struct param *p)
 
 static void ui2a(unsigned int num, struct param *p)
 {
-    int n = 0;
     unsigned int d = 1;
     char *bf = p->bf;
-    while (num / d >= p->base)
+    if ((p->prec == 0) && (num == 0))
+            return;
+    while (num / d >= p->base) {
         d *= p->base;
+    }
     while (d != 0) {
         int dgt = num / d;
         num %= d;
         d /= p->base;
-        if (n || dgt > 0 || d == 0) {
-            *bf++ = dgt + (dgt < 10 ? '0' : (p->uc ? 'A' : 'a') - 10);
-            ++n;
-        }
+        *bf++ = dgt + (dgt < 10 ? '0' : (p->uc ? 'A' : 'a') - 10);
     }
-    *bf = 0;
+    p->bf_len = bf - p->bf;
 }
 
 static void i2a(int num, struct param *p)
@@ -172,7 +176,7 @@ static void i2a(int num, struct param *p)
 
 static int a2d(char ch)
 {
-    if (ch >= '0' && ch <= '9')
+    if (IS_DIGIT(ch))
         return ch - '0';
     else if (ch >= 'a' && ch <= 'f')
         return ch - 'a' + 10;
@@ -201,22 +205,26 @@ static char a2u(char ch, const char **src, int base, unsigned int *nump)
 static void putchw(void *putp, putcf putf, struct param *p)
 {
     char ch;
-    int n = p->width;
+    int width = p->width;
+    int prec = p->prec;
     char *bf = p->bf;
+    size_t bf_len = p->bf_len;
 
     /* Number of filling characters */
-    while (*bf++ && n > 0)
-        n--;
+    width -= bf_len;
+    prec -= bf_len;
     if (p->sign)
-        n--;
+        width--;
     if (p->alt && p->base == 16)
-        n -= 2;
+        width -= 2;
     else if (p->alt && p->base == 8)
-        n--;
+        width--;
+    if (prec > 0)
+        width -= prec;
 
     /* Fill with space to align to the right, before alternate or sign */
     if (!p->lz && !p->align_left) {
-        while (n-- > 0)
+        while (width-- > 0)
             putf(putp, ' ');
     }
 
@@ -233,19 +241,20 @@ static void putchw(void *putp, putcf putf, struct param *p)
     }
 
     /* Fill with zeros, after alternate or sign */
+    while (prec-- > 0)
+        putf(putp, '0');
     if (p->lz) {
-        while (n-- > 0)
+        while (width-- > 0)
             putf(putp, '0');
     }
 
     /* Put actual buffer */
-    bf = p->bf;
-    while ((ch = *bf++))
+    while ((bf_len-- > 0) && (ch = *bf++))
         putf(putp, ch);
 
     /* Fill with space to align to the left, after string */
     if (!p->lz && p->align_left) {
-        while (n-- > 0)
+        while (width-- > 0)
             putf(putp, ' ');
     }
 }
@@ -253,13 +262,8 @@ static void putchw(void *putp, putcf putf, struct param *p)
 void tfp_format(void *putp, putcf putf, const char *fmt, va_list va)
 {
     struct param p;
-#ifdef PRINTF_LONG_SUPPORT
-    char bf[23];  /* long = 64b on some architectures */
-#else
-    char bf[12];  /* int = 32b on some architectures */
-#endif
+    char bf[BF_MAX];
     char ch;
-    p.bf = bf;
 
     while ((ch = *(fmt++))) {
         if (ch != '%') {
@@ -271,9 +275,13 @@ void tfp_format(void *putp, putcf putf, const char *fmt, va_list va)
             /* Init parameter struct */
             p.lz = 0;
             p.alt = 0;
-            p.width = 0;
+            p.uc = 0;
             p.align_left = 0;
+            p.width = 0;
+            p.prec = -1;
             p.sign = 0;
+            p.bf = bf;
+            p.bf_len = 0;
 
             /* Flags */
             while ((ch = *(fmt++))) {
@@ -293,21 +301,46 @@ void tfp_format(void *putp, putcf putf, const char *fmt, va_list va)
                 break;
             }
 
+            if (p.align_left)
+                p.lz = 0;
+
             /* Width */
-            if (ch >= '0' && ch <= '9') {
-                ch = a2u(ch, &fmt, 10, &(p.width));
+            if (ch == '*') {
+                ch = *(fmt++);
+                p.width = va_arg(va, int);
+                if (p.width < 0) {
+                    p.align_left = 1;
+                    p.width = -p.width;
+                }
+            } else if (IS_DIGIT(ch)) {
+                unsigned int width;
+                ch = a2u(ch, &fmt, 10, &(width));
+                p.width = width;
             }
 
-            /* We accept 'x.y' format but don't support it completely:
-             * we ignore the 'y' digit => this ignores 0-fill
-             * size and makes it == width (ie. 'x') */
+            /* Precision */
             if (ch == '.') {
-              p.lz = 1;  /* zero-padding */
-              /* ignore actual 0-fill size: */
-              do {
                 ch = *(fmt++);
-              } while ((ch >= '0') && (ch <= '9'));
+                if (ch == '*') {
+                    int prec;
+                    ch = *(fmt++);
+                    prec = va_arg(va, int);
+                    if (prec < 0)
+                        /* act as if precision was omitted */
+                        p.prec = -1;
+                    else
+                        p.prec = prec;
+                } else if (IS_DIGIT(ch)) {
+                    unsigned int prec;
+                    ch = a2u(ch, &fmt, 10, &(prec));
+                    p.prec = prec;
+                } else {
+                    p.prec = 0;
+                }
             }
+            if (p.prec >= 0)
+                /* precision causes zero pad to be ignored */
+                p.lz = 0;
 
 #ifdef PRINTF_SIZE_T_SUPPORT
 # ifdef PRINTF_LONG_SUPPORT
@@ -340,6 +373,8 @@ void tfp_format(void *putp, putcf putf, const char *fmt, va_list va)
                 goto abort;
             case 'u':
                 p.base = 10;
+                if (p.prec < 0)
+                    p.prec = 1;
 #ifdef PRINTF_LONG_SUPPORT
 #ifdef PRINTF_LONG_LONG_SUPPORT
                 if (2 == lng)
@@ -356,6 +391,8 @@ void tfp_format(void *putp, putcf putf, const char *fmt, va_list va)
             case 'd':
             case 'i':
                 p.base = 10;
+                if (p.prec < 0)
+                    p.prec = 1;
 #ifdef PRINTF_LONG_SUPPORT
 #ifdef PRINTF_LONG_LONG_SUPPORT
                 if (2 == lng)
@@ -384,6 +421,8 @@ void tfp_format(void *putp, putcf putf, const char *fmt, va_list va)
             case 'X':
                 p.base = 16;
                 p.uc = (ch == 'X')?1:0;
+                if (p.prec < 0)
+                    p.prec = 1;
 #ifdef PRINTF_LONG_SUPPORT
 #ifdef PRINTF_LONG_LONG_SUPPORT
                 if (2 == lng)
@@ -399,6 +438,8 @@ void tfp_format(void *putp, putcf putf, const char *fmt, va_list va)
                 break;
             case 'o':
                 p.base = 8;
+                if (p.prec < 0)
+                    p.prec = 1;
                 ui2a(va_arg(va, unsigned int), &p);
                 putchw(putp, putf, &p);
                 break;
@@ -406,9 +447,17 @@ void tfp_format(void *putp, putcf putf, const char *fmt, va_list va)
                 putf(putp, (char)(va_arg(va, int)));
                 break;
             case 's':
+            {
+                unsigned int prec = p.prec;
+                char *b;
                 p.bf = va_arg(va, char *);
+                b = p.bf;
+                while ((prec-- != 0) && *b++) {
+                    p.bf_len++;
+                }
+                p.prec = -1;
                 putchw(putp, putf, &p);
-                p.bf = bf;
+            }
                 break;
             case '%':
                 putf(putp, ch);
