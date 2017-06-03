@@ -39,6 +39,7 @@ int main()
   TPRINTF("42=%3d d1=%4.4x |%-4s| d2=%8.8x\n", 42, 0xd1, "string4", 0xd2);
   TPRINTF("84=%d 21=%ds |%s| |%sOK| d1=%x d2=%#x\n",
           84, 21, "hello", "fine", 0xd1, 0xd2);
+  TPRINTF("42=% 3d d1=%4x |%10s| d2=%3.3x\n", 42, 0xd1, "string4", 0xd2);
 
   TPRINTF("%lld\n", LLONG_MIN);
   TPRINTF("%lld\n", LLONG_MAX);

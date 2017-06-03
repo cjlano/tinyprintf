@@ -70,10 +70,11 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  * Implementation
  */
 struct param {
-    char lz:1;          /**<  Leading zeros */
+    char l:1;           /**<  Add leading character */
     char alt:1;         /**<  alternate form */
     char uc:1;          /**<  Upper case (for base16 only) */
     char align_left:1;  /**<  0 == align right (default), 1 == align left */
+    char lchr;          /**<  Leading character */
     unsigned int width; /**<  field width */
     char sign;          /**<  The sign to display (if any) */
     unsigned int base;  /**<  number base (e.g.: 8, 10, 16) */
@@ -215,7 +216,7 @@ static void putchw(void *putp, putcf putf, struct param *p)
         n--;
 
     /* Fill with space to align to the right, before alternate or sign */
-    if (!p->lz && !p->align_left) {
+    if (!p->l && !p->align_left) {
         while (n-- > 0)
             putf(putp, ' ');
     }
@@ -233,9 +234,9 @@ static void putchw(void *putp, putcf putf, struct param *p)
     }
 
     /* Fill with zeros, after alternate or sign */
-    if (p->lz) {
+    if (p->l) {
         while (n-- > 0)
-            putf(putp, '0');
+            putf(putp, p->lchr);
     }
 
     /* Put actual buffer */
@@ -244,7 +245,7 @@ static void putchw(void *putp, putcf putf, struct param *p)
         putf(putp, ch);
 
     /* Fill with space to align to the left, after string */
-    if (!p->lz && p->align_left) {
+    if (!p->l && p->align_left) {
         while (n-- > 0)
             putf(putp, ' ');
     }
@@ -269,7 +270,8 @@ void tfp_format(void *putp, putcf putf, const char *fmt, va_list va)
             char lng = 0;  /* 1 for long, 2 for long long */
 #endif
             /* Init parameter struct */
-            p.lz = 0;
+            p.l = 0;
+            p.lchr = '0';
             p.alt = 0;
             p.width = 0;
             p.align_left = 0;
@@ -282,7 +284,9 @@ void tfp_format(void *putp, putcf putf, const char *fmt, va_list va)
                     p.align_left = 1;
                     continue;
                 case '0':
-                    p.lz = 1;
+                case ' ':
+                    p.l = 1;
+                    p.lchr = ch;
                     continue;
                 case '#':
                     p.alt = 1;
@@ -302,7 +306,7 @@ void tfp_format(void *putp, putcf putf, const char *fmt, va_list va)
              * we ignore the 'y' digit => this ignores 0-fill
              * size and makes it == width (ie. 'x') */
             if (ch == '.') {
-              p.lz = 1;  /* zero-padding */
+              p.l = 1;  /* zero-padding */
               /* ignore actual 0-fill size: */
               do {
                 ch = *(fmt++);
