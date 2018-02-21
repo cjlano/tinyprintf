@@ -271,7 +271,7 @@ void tfp_format(void *putp, putcf putf, const char *fmt, va_list va)
 #endif
             /* Init parameter struct */
             p.l = 0;
-            p.lchr = '0';
+            p.lchr = ' ';
             p.alt = 0;
             p.width = 0;
             p.align_left = 0;
@@ -304,13 +304,19 @@ void tfp_format(void *putp, putcf putf, const char *fmt, va_list va)
 
             /* We accept 'x.y' format but don't support it completely:
              * we ignore the 'y' digit => this ignores 0-fill
-             * size and makes it == width (ie. 'x') */
+             * size and makes it == width (ie. 'x'), but use
+             * its value to set fill character to '0' if greater than 1.
+             */
             if (ch == '.') {
-              p.l = 1;  /* zero-padding */
-              /* ignore actual 0-fill size: */
-              do {
-                ch = *(fmt++);
-              } while ((ch >= '0') && (ch <= '9'));
+              p.l = 1;
+              ch = *(fmt++);
+              if (ch >= '0' && ch <= '9') {
+                unsigned int num;
+                ch = a2u(ch, &fmt, 10, &num);
+                if (num > 1) {
+                  p.lchr = '0';
+                }
+              }
             }
 
 #ifdef PRINTF_SIZE_T_SUPPORT
