@@ -291,6 +291,9 @@ void tfp_format(void *putp, putcf putf, const char *fmt, va_list va)
                 case '#':
                     p.alt = 1;
                     continue;
+                case '*':
+                    p.width = (unsigned int) va_arg(va, int);
+                    continue;
                 default:
                     break;
                 }

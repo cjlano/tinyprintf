@@ -83,6 +83,14 @@ void main()
     TPRINTF("Adddress of stack variable: %p", &in_stack);
   }
 
+  {
+    char buf[] = "0123456789";
+    TPRINTF("%*s", 5, &buf[5]);
+
+    TPRINTF("%-*d", 5, 123);
+    TPRINTF("%*d", 5, 123);
+  }
+
   printf("Sizeof\n");
   printf("  char      %zd\n", sizeof(char));
   printf("  int       %zd\n", sizeof(int));
