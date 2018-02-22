@@ -21,11 +21,7 @@ void check(const char *expr, int expected_sz, int actual_sz)
     printf("Output     %s", actual_buffer);
   } else {
     failures++;
-    printf("FAIL       %s\n", expr);
-
-    if (!size_pass) {
-      printf("Size fail: expected=%d, actual=%d\n", expected_sz, actual_sz);
-    }
+    printf("FAIL       printf(%s)\n", expr);
 
     if (!content_pass) {
       printf("libc       %s\n", expected_buffer);
@@ -85,7 +81,12 @@ void main()
 
   {
     char buf[] = "0123456789";
-    TPRINTF("%*s", 5, &buf[5]);
+    TPRINTF("%*s", 5, &buf[5]);         /* minimum length, too long string */
+    TPRINTF("%.*s", 5, buf);            /* maximum length, too long string */
+    TPRINTF("%.*s", 5, &buf[8]);        /* maximum length, too short string */
+    TPRINTF("%*.*s", 5, 5, &buf[8]);    /* minimum and maximum, too short string*/
+    TPRINTF("%*.*s", 5, 1, &buf[8]);
+    TPRINTF("%*.*s", 5, 5, buf);
 
     TPRINTF("%-*d", 5, 123);
     TPRINTF("%*d", 5, 123);

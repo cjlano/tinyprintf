@@ -42,6 +42,8 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include <sys/types.h>
 #endif
 
+#include <limits.h>
+
 #ifdef PRINTF_LONG_LONG_SUPPORT
 # define PRINTF_LONG_SUPPORT
 #endif
@@ -70,15 +72,16 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  * Implementation
  */
 struct param {
-    char l:1;           /**<  Add leading character */
-    char alt:1;         /**<  alternate form */
-    char uc:1;          /**<  Upper case (for base16 only) */
-    char align_left:1;  /**<  0 == align right (default), 1 == align left */
-    char lchr;          /**<  Leading character */
-    unsigned int width; /**<  field width */
-    char sign;          /**<  The sign to display (if any) */
-    unsigned int base;  /**<  number base (e.g.: 8, 10, 16) */
-    char *bf;           /**<  Buffer to output */
+    char l:1;               /**<  Add leading character */
+    char alt:1;             /**<  alternate form */
+    char uc:1;              /**<  Upper case (for base16 only) */
+    char align_left:1;      /**<  0 == align right (default), 1 == align left */
+    char lchr;              /**<  Leading character */
+    unsigned int width;     /**<  field width */
+    int precision;          /**<  field precision */
+    char sign;              /**<  The sign to display (if any) */
+    unsigned int base;      /**<  number base (e.g.: 8, 10, 16) */
+    char *bf;               /**<  Buffer to output */
 };
 
 
@@ -199,15 +202,15 @@ static char a2u(char ch, const char **src, int base, unsigned int *nump)
     return ch;
 }
 
-static void putchw(void *putp, putcf putf, struct param *p)
+static void putchw(void *putp, putcf putf, const struct param *p)
 {
     char ch;
     int n = p->width;
     char *bf = p->bf;
+    int precision = p->precision;
 
     /* Number of filling characters */
-    while (*bf++ && n > 0)
-        n--;
+    while (precision-- > 0 && *bf++ && n-- > 0);
     if (p->sign)
         n--;
     if (p->alt && p->base == 16)
@@ -241,7 +244,8 @@ static void putchw(void *putp, putcf putf, struct param *p)
 
     /* Put actual buffer */
     bf = p->bf;
-    while ((ch = *bf++))
+    precision = p->precision;
+    while (precision-- > 0 && (ch = *bf++))
         putf(putp, ch);
 
     /* Fill with space to align to the left, after string */
@@ -260,6 +264,7 @@ void tfp_format(void *putp, putcf putf, const char *fmt, va_list va)
     char bf[12];  /* int = 32b on some architectures */
 #endif
     char ch;
+    int w;
     p.bf = bf;
 
     while ((ch = *(fmt++))) {
@@ -274,6 +279,7 @@ void tfp_format(void *putp, putcf putf, const char *fmt, va_list va)
             p.lchr = ' ';
             p.alt = 0;
             p.width = 0;
+            p.precision = INT_MAX;
             p.align_left = 0;
             p.sign = 0;
 
@@ -292,7 +298,13 @@ void tfp_format(void *putp, putcf putf, const char *fmt, va_list va)
                     p.alt = 1;
                     continue;
                 case '*':
-                    p.width = (unsigned int) va_arg(va, int);
+                    w = va_arg(va, int);
+                    if (w < 0) {
+                        p.align_left = 1;
+                        p.width = (unsigned int) -w;
+                    } else {
+                        p.width = (unsigned int) w;
+                    }
                     continue;
                 default:
                     break;
@@ -319,6 +331,12 @@ void tfp_format(void *putp, putcf putf, const char *fmt, va_list va)
                 if (num > 1) {
                   p.lchr = '0';
                 }
+              } else if (ch == '*') {
+                  ch = *(fmt++);
+                  int precision = va_arg(va, int);
+                  if (precision >= 0) {
+                      p.precision = precision;
+                  }
               }
             }
 
