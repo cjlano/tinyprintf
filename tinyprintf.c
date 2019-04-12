@@ -380,6 +380,7 @@ void tfp_format(void *putp, putcf putf, const char *fmt, va_list va)
                 lng = 2;
 # endif
 #endif
+            //-fallthrough
             case 'x':
             case 'X':
                 p.base = 16;
