@@ -39,7 +39,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  * Configuration adjustments
  */
 #ifdef PRINTF_SIZE_T_SUPPORT
-#include <sys/types.h>
+#include <stddef.h>
 #endif
 
 #ifdef PRINTF_LONG_LONG_SUPPORT

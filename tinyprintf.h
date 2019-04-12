@@ -126,7 +126,7 @@ regs Kusti, 23.10.2004
 /* Optional external types dependencies */
 
 #if TINYPRINTF_DEFINE_TFP_SPRINTF
-# include <sys/types.h>  /* size_t */
+# include <stddef.h>  /* size_t */
 #endif
 
 /* Declarations */
